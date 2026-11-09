@@ -84,7 +84,7 @@ if uploaded_file is not None:
                     {chapter_text[:15000]}
                     """
                     try:
-                        model = genai.GenerativeModel('gemini-1.5-flash')
+                        model = genai.GenerativeModel('gemini-3.5-flash')
                         response = model.generate_content(prompt)
                         st.markdown("### Generated Practice Questions:")
                         st.markdown(response.text)
