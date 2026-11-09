@@ -86,7 +86,7 @@ if uploaded_file is not None:
                     try:
                         client = Groq(api_key=groq_key)
                         response = client.chat.completions.create(
-                            model="",
+                            model="llama-3.1-8b-instant",
                             messages=[{"role": "user", "content": prompt}],
                             temperature=0.7
                         )
@@ -122,7 +122,7 @@ if uploaded_file is not None:
                     try:
                         client = Groq(api_key=groq_key)
                         response = client.chat.completions.create(
-                            model="llama-3.3-70b-versatile",
+                            model="llama-3.1-8b-instant",
                             messages=[{"role": "user", "content": prompt}],
                             temperature=0.7
                         )
