@@ -1,4 +1,3 @@
-
 import streamlit as st
 import google.generativeai as genai
 from pypdf import PdfReader
@@ -40,7 +39,7 @@ else:
 uploaded_file = st.file_uploader("Upload Chapter File (PDF or TXT)", type=["pdf", "txt"])
 
 @st.cache_data
--def extract_text(uploaded_file):
+def extract_text(uploaded_file):
     text = ""
     if uploaded_file.type == "application/pdf":
         reader = PdfReader(uploaded_file)
