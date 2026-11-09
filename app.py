@@ -86,7 +86,7 @@ if uploaded_file is not None:
                     try:
                         client = Groq(api_key=groq_key)
                         response = client.chat.completions.create(
-                            model="gpt-oss-20b",
+                            model="openai/gpt-oss-20b",
                             messages=[{"role": "user", "content": prompt}],
                             temperature=0.7
                         )
