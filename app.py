@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+from groq import Groq
 from pypdf import PdfReader
 
 # Page Configuration
@@ -11,7 +11,7 @@ st.set_page_config(
 
 # Sidebar for Configuration
 st.sidebar.title("⚙️ Configuration")
-api_key_input = st.sidebar.text_input("Enter Gemini API Key", type="password")
+api_key_input = st.sidebar.text_input("Enter Groq API Key", type="password")
 
 language_choice = st.sidebar.selectbox(
     "Select Explanation Language",
@@ -25,15 +25,15 @@ st.sidebar.info("Upload a chapter PDF or TXT file to get started with board-styl
 st.title("🇵🇰 PakExam AI Prep: Smart Chapter Assistant")
 st.markdown("Prepare for your Matric and Intermediate exams using your own textbook chapters!")
 
-# Initialize API
+# Initialize Groq Client
+groq_key = None
 if api_key_input:
-    genai.configure(api_key=api_key_input)
-else:
-    # Fallback to Streamlit secrets if hosted on Streamlit Cloud
-    if "GEMINI_API_KEY" in st.secrets:
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    else:
-        st.warning("⚠️ Please enter your Gemini API Key in the sidebar or set it in Streamlit Secrets.")
+    groq_key = api_key_input
+elif "GROQ_API_KEY" in st.secrets:
+    groq_key = st.secrets["GROQ_API_KEY"]
+
+if not groq_key:
+    st.warning("⚠️ Please enter your Groq API Key in the sidebar or set it in Streamlit Secrets.")
 
 # File Uploader
 uploaded_file = st.file_uploader("Upload Chapter File (PDF or TXT)", type=["pdf", "txt"])
@@ -71,8 +71,8 @@ if uploaded_file is not None:
             num_questions = st.slider("Number of Questions", min_value=3, max_value=10, value=5)
             
         if st.button("Generate Questions"):
-            if not api_key_input and "GEMINI_API_KEY" not in st.secrets:
-                st.error("Please provide a Gemini API Key.")
+            if not groq_key:
+                st.error("Please provide a Groq API Key.")
             else:
                 with st.spinner("Generating questions based on Pakistani board patterns..."):
                     prompt = f"""
@@ -81,13 +81,17 @@ if uploaded_file is not None:
                     Respond in {language_choice}. Make sure the questions test conceptual and board-exam patterns.
                     
                     Chapter Text:
-                    {chapter_text[:15000]}
+                    {chapter_text[:12000]}
                     """
                     try:
-                        model = genai.GenerativeModel('gemini-3.5-flash')
-                        response = model.generate_content(prompt)
+                        client = Groq(api_key=groq_key)
+                        response = client.chat.completions.create(
+                            model="",
+                            messages=[{"role": "user", "content": prompt}],
+                            temperature=0.7
+                        )
                         st.markdown("### Generated Practice Questions:")
-                        st.markdown(response.text)
+                        st.markdown(response.choices[0].message.content)
                     except Exception as e:
                         st.error(f"Error generating questions: {e}")
 
@@ -100,8 +104,8 @@ if uploaded_file is not None:
         if st.button("Evaluate My Answer"):
             if not user_question or not user_answer:
                 st.warning("Please enter both the question and your answer.")
-            elif not api_key_input and "GEMINI_API_KEY" not in st.secrets:
-                st.error("Please provide a Gemini API Key.")
+            elif not groq_key:
+                st.error("Please provide a Groq API Key.")
             else:
                 with st.spinner("Evaluating your answer against the textbook..."):
                     prompt = f"""
@@ -113,13 +117,17 @@ if uploaded_file is not None:
                     Provide constructive feedback, correct any factual mistakes based strictly on the text, and give a model answer in {language_choice}.
                     
                     Chapter Text Excerpt:
-                    {chapter_text[:15000]}
+                    {chapter_text[:12000]}
                     """
                     try:
-                        model = genai.GenerativeModel('gemini-1.5-flash')
-                        response = model.generate_content(prompt)
+                        client = Groq(api_key=groq_key)
+                        response = client.chat.completions.create(
+                            model="llama-3.3-70b-versatile",
+                            messages=[{"role": "user", "content": prompt}],
+                            temperature=0.7
+                        )
                         st.markdown("### 📊 Evaluation & Explanation:")
-                        st.markdown(response.text)
+                        st.markdown(response.choices[0].message.content)
                     except Exception as e:
                         st.error(f"Error evaluating answer: {e}")
 else:
